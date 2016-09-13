@@ -13,12 +13,14 @@ CDetermineTriangle::CDetermineTriangle(std::string a, std::string b, std::string
 	}
 	catch (const std::exception&)
 	{
-		throw std::exception("Invalid arguments. Parameters must have type <double>");
+		//throw std::exception("Invalid arguments. Parameters must have type <double>");
+		throw std::exception("Неверный аргумент.\n Аргументами должны быть числа.");
 	}
 
 	if (m_a <= 0 || m_b <= 0 || m_c <= 0)
 	{
-		throw std::exception("Invalid arguments. Side must be more than 0");
+		//throw std::exception("Invalid arguments. Side must be more than 0");
+		throw std::exception("Неверный аргумент.\nСтороны должны иметь длину больше 0");
 	}
 }
 
@@ -47,16 +49,16 @@ void CDetermineTriangle::OutputResult()
 	switch (m_type)
 	{
 	case NORMAL:
-		std::cout << "Normal" << std::endl;
+		std::cout << "Обычный" << std::endl;
 		break;
 	case ISOSCELES:
-		std::cout << "Isosceles" << std::endl;
+		std::cout << "Равнобедренный" << std::endl;
 		break;
 	case EQUILATERAL:
-		std::cout << "Equilateral" << std::endl;
+		std::cout << "Равносторонний" << std::endl;
 		break;
 	case NOT_TRIANGLE:
-		std::cout << "Not triangle" << std::endl;
+		std::cout << "Не треугольник" << std::endl;
 		break;
 	default:
 		break;
