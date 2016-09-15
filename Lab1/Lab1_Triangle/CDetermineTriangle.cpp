@@ -2,14 +2,15 @@
 #include <string>
 #include <iostream>
 #include "CDetermineTriangle.h"
+#include <boost\lexical_cast.hpp>
 
-CDetermineTriangle::CDetermineTriangle(std::string a, std::string b, std::string c)
+CDetermineTriangle::CDetermineTriangle(const std::string& a, const std::string& b, const std::string& c)
 {
 	try
 	{
-		this->m_a = std::stod(a);
-		this->m_b = std::stod(b);
-		this->m_c = std::stod(c);
+		m_a = boost::lexical_cast<double>(a);
+		m_b = boost::lexical_cast<double>(b);
+		m_c = boost::lexical_cast<double>(c);
 	}
 	catch (const std::exception&)
 	{

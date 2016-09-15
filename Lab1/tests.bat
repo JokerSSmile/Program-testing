@@ -25,6 +25,9 @@ IF NOT ERRORLEVEL 0 GOTO err
 FOR /f %%i IN ('triangle.exe 3 3 3') DO SET result=%%i
 IF NOT "%result%" == "Равносторонний" GOTO err
 
+FOR /f %%i IN ('triangle.exe 3.2 3.2 3.2') DO SET result=%%i
+IF NOT "%result%" == "Равносторонний" GOTO err
+
 FOR /f %%i IN ('triangle.exe 3 5 3') DO SET result=%%i
 IF NOT "%result%" == "Равнобедренный" GOTO err
 
@@ -43,12 +46,15 @@ IF NOT "%result%" == "Не" GOTO err
 FOR /f %%i IN ('triangle.exe 3 5 4') DO SET result=%%i
 IF NOT "%result%" == "Обычный" GOTO err
 
+FOR /f %%i IN ('triangle.exe 3.1 3.2 3.3') DO SET result=%%i
+IF NOT "%result%" == "Обычный" GOTO err
+
 FOR /f %%i IN ('triangle.exe 7 6 10') DO SET result=%%i
 IF NOT "%result%" == "Обычный" GOTO err
 
-ECHO Успешно
+ECHO Успешно/Succeed
 EXIT /b
   
-err
-ECHO Провалено
+:err
+ECHO Провалено/Failed
 EXIT /b

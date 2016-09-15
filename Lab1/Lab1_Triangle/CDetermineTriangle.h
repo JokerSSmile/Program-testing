@@ -12,7 +12,7 @@ enum TriangleType
 class CDetermineTriangle
 {
 public:
-	CDetermineTriangle(std::string a, std::string b, std::string c);
+	CDetermineTriangle(const std::string& a, const std::string& b, const std::string& c);
 	void DetermineTriangleType();
 	void OutputResult();
 
