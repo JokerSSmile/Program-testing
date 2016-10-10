@@ -1,15 +1,11 @@
-import com.sun.corba.se.spi.orbutil.fsm.Input;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import sun.reflect.annotation.ExceptionProxy;
 
 import java.io.*;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.*;
 
 public class LinkParser {
@@ -18,41 +14,67 @@ public class LinkParser {
 
     private String startLink;
     private String domain;
-    private Set<URL> unparsedUrls;
+    private Vector<String> unparsedUrls;
     private Map<String, Integer> parsedUrls;
     private Map<String, Integer> badUrls;
 
     public LinkParser(String link)
     {
         startLink = link;
-        unparsedUrls = new HashSet<>();
+        unparsedUrls = new Vector<>();
         parsedUrls = new HashMap<>();
         badUrls = new HashMap<>();
     }
 
     public void Parse() throws Exception
     {
+        startLink = startLink.startsWith("http") ? startLink : "http://" + startLink;
 
-        URL startURL = new URL(startLink);
-        unparsedUrls.add(startURL);
-        domain = startURL.getAuthority().substring(4);
-        //System.out.println(domain);
-        //System.out.println("----------");
-
-
-        while (!unparsedUrls.isEmpty()) {
-
-            URL currentUrl = unparsedUrls.iterator().next();
-            GetUrls(currentUrl);
-            unparsedUrls.remove(currentUrl);
-
+        URL startURL;
+        try {
+            startURL = new URL(startLink);
+            HttpURLConnection connection = (HttpURLConnection)startURL.openConnection();
+            connection.setRequestMethod ("GET");
+            connection.connect ();
+        }
+        catch (Exception e)
+        {
+            badUrls.put(startLink, 404);
+            throw new Exception("Invalid URL " + startLink);
         }
 
+        unparsedUrls.add(startLink);
+        domain = startURL.getHost().contains("www.") ? startURL.getHost() : "www." + startURL.getHost();
 
+        Parsing();
 
+        OutputToFiles();
+    }
 
-        for (Map.Entry entry : parsedUrls.entrySet()) {
-            System.out.println(entry.getKey() + ", " + entry.getValue());
+    private void Parsing() throws Exception
+    {
+        while (!unparsedUrls.isEmpty()) {
+
+            String tempUrl = unparsedUrls.get(0);
+            if (!tempUrl.startsWith("http"))
+            {
+                tempUrl = "http://" + tempUrl;
+            }
+
+            URL currentUrl;
+            try {
+                currentUrl = new URL(tempUrl);
+            }
+            catch (Exception e)
+            {
+                badUrls.put(startLink, 404);
+                continue;
+            }
+
+            parsedUrls.put(currentUrl.toString(), GetResponseCode(currentUrl));
+            unparsedUrls.remove(unparsedUrls.get(0));
+
+            GetUrls(currentUrl);
         }
     }
 
@@ -60,60 +82,121 @@ public class LinkParser {
     {
         if (!IsCorrectUrl(url))
         {
-            System.out.println("ERROR INVALID URL");
-            throw new Exception("Invalid url " +  url.toString());
+            return;
         }
-        Document page = Jsoup.connect(url.toString()).timeout(TIMEOUT).ignoreContentType(true).get();
-        String regex = "a[href*=" + domain + "]";
+
+        Document page;
+        try {
+            page = Jsoup.connect(url.toString()).timeout(TIMEOUT).ignoreContentType(true).get();
+        }
+        catch (Exception e)
+        {
+            badUrls.put(url.toString(), GetResponseCode(url));
+            return;
+        }
+
+        final String regex = "a[href]";
         Elements linksInUrl = page.select(regex);
 
-        for (Element curUrl : linksInUrl)
-        {
-            try {
-                System.out.println(curUrl.toString());
-                //System.out.println("123");
-                //System.out.println(curUrl.getElementsByAttribute("href").attr("href").split("://")[1].split("www.")[1]);
-                String href = curUrl.getElementsByAttribute("href").attr("href").split("//")[1].split("www.")[1];
-                String hrefWithProtocol = "https://www." + href;
+        for (Element link : linksInUrl) {
+            String href = link.attr("href");
+            href = MakeAbsoluteUrl(href);
 
-                //System.out.println(href);
-                if (!parsedUrls.containsKey(hrefWithProtocol) && href.indexOf(domain) == 0 && !href.isEmpty()) {
-                    //System.out.println(hrefWithProtocol);
-                    unparsedUrls.add(new URL(hrefWithProtocol));
-                }
-
-
-                parsedUrls.put(hrefWithProtocol, GetResponseCode(url));
-                //System.out.println(href);
+            if (!parsedUrls.containsKey(href) && !unparsedUrls.contains(href) && IsSameDomain(href))
+            {
+                unparsedUrls.add(href);
             }
-            catch (Exception e) {
-                System.out.println(curUrl + "-----------");
-
-                badUrls.put(curUrl.toString(), GetResponseCode(new URL(curUrl.getElementsByAttribute("href").attr("href"))));
-            }
-
-            //System.out.println(parsedUrls.size() + " " + unparsedUrls.size() + " " + badUrls.size() + " " + curUrl.toString());
         }
-
-
     }
 
-    private boolean IsCorrectUrl(URL url)
+    private String MakeAbsoluteUrl(String url)
     {
+        if (url.startsWith("//"))
+        {
+            return "http://www." + url;
+        }
+        if (url.startsWith("/") || url.startsWith("?"))
+        {
+            return "http://" + domain + url;
+        }
+        if (!url.startsWith("http"))
+        {
+            url = "http://" + url;
+        }
+        return url;
+    }
+
+    private boolean IsSameDomain(String givenUrl)
+    {
+        String tempUrl = givenUrl;
+        if (!tempUrl.startsWith("http"))
+        {
+            tempUrl = "http://" + tempUrl;
+        }
+        URL url = null;
         try {
-            URLConnection conn = url.openConnection();
-            conn.connect();
-        } catch (MalformedURLException e) {
-            return false;
-        } catch (IOException e) {
+            url = new URL(tempUrl);
+            String urlDomain = url.getHost();
+
+            if (!urlDomain.contains("www."))
+            {
+                urlDomain = "www." + urlDomain;
+            }
+            if (!urlDomain.equals(domain))
+            {
+                return false;
+            }
+        }
+        catch (Exception e)
+        {
+            badUrls.put(url.toString(), GetResponseCode(url));
             return false;
         }
         return true;
     }
 
-    private int GetResponseCode(URL url) throws Exception
+    private boolean IsCorrectUrl(URL url)
     {
-        HttpURLConnection connection = (HttpURLConnection)url.openConnection();
-        return connection.getResponseCode();
+        try {
+            HttpURLConnection connection = (HttpURLConnection)url.openConnection();
+            connection.setRequestMethod ("GET");
+            connection.connect();
+        }
+        catch (Exception e) {
+            badUrls.put(url.toString(), GetResponseCode(url));
+            return false;
+        }
+        return true;
     }
+
+    private int GetResponseCode(URL url)
+    {
+        try {
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            return connection.getResponseCode();
+        }
+        catch (Exception e)
+        {
+            return 404;
+        }
+    }
+
+    private void OutputToFiles() throws Exception
+    {
+        PrintWriter parsedWriter = new PrintWriter("parsedUrls.txt", "UTF-8");
+        for (Map.Entry url: parsedUrls.entrySet())
+        {
+            parsedWriter.println(url.getKey() + "\t" + url.getValue());
+        }
+        parsedWriter.close();
+
+        PrintWriter badWriter = new PrintWriter("badUrls.txt", "UTF-8");
+        for (Map.Entry url: badUrls.entrySet())
+        {
+            badWriter.println(url.getKey() + "\t" + url.getValue());
+        }
+        badWriter.close();
+    }
+
 }

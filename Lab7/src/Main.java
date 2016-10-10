@@ -1,16 +1,20 @@
-
 public class Main {
 
     public static void main(String[] args)
     {
-        LinkParser linkParser = new LinkParser("https://www.google.ru/");
+        if (args.length != 1)
+        {
+            System.out.println("Usage must be CheckLinks.jar <URL>");
+            return;
+        }
+
+        LinkParser linkParser = new LinkParser(args[0]);
         try {
             linkParser.Parse();
         }
         catch (Exception e)
         {
-            System.out.println("Error");
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
     }
 }
