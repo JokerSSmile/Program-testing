@@ -9,6 +9,7 @@ public class Main {
         }
 
         LinkParser linkParser = new LinkParser(args[0]);
+        //LinkParser linkParser = new LinkParser("https://www.kinopoisk.ru");
         try {
             linkParser.Parse();
         }

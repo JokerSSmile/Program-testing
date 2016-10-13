@@ -40,11 +40,13 @@ public class LinkParser {
         catch (Exception e)
         {
             badUrls.put(startLink, 404);
-            throw new Exception("Invalid URL " + startLink);
+            //System.out.println(1);
+            throw new Exception("Invalid URL " + startLink + "\n" + "Enter URL like \"http://www.google.ru\"");
         }
 
         unparsedUrls.add(startLink);
-        domain = startURL.getHost().contains("www.") ? startURL.getHost() : "www." + startURL.getHost();
+        //domain = startURL.getHost().contains("www.") ? startURL.getHost() : "www." + startURL.getHost();
+        domain = startURL.getHost();
 
         Parsing();
 
@@ -67,12 +69,15 @@ public class LinkParser {
             }
             catch (Exception e)
             {
+                //System.out.println(2);
                 badUrls.put(startLink, 404);
                 continue;
             }
 
+            System.out.println("Processing URL: " + currentUrl.toString());
             parsedUrls.put(currentUrl.toString(), GetResponseCode(currentUrl));
             unparsedUrls.remove(unparsedUrls.get(0));
+            //System.out.println(parsedUrls.size() + " " + unparsedUrls.size());
 
             GetUrls(currentUrl);
         }
@@ -91,6 +96,7 @@ public class LinkParser {
         }
         catch (Exception e)
         {
+            //System.out.println(3);
             badUrls.put(url.toString(), GetResponseCode(url));
             return;
         }
@@ -113,7 +119,7 @@ public class LinkParser {
     {
         if (url.startsWith("//"))
         {
-            return "http://www." + url;
+            url = url.substring(2);
         }
         if (url.startsWith("/") || url.startsWith("?"))
         {
@@ -123,6 +129,7 @@ public class LinkParser {
         {
             url = "http://" + url;
         }
+        //System.out.println(url);
         return url;
     }
 
@@ -149,7 +156,8 @@ public class LinkParser {
         }
         catch (Exception e)
         {
-            badUrls.put(url.toString(), GetResponseCode(url));
+            //System.out.println(4);
+            badUrls.put(givenUrl, GetResponseCode(url));
             return false;
         }
         return true;
@@ -163,6 +171,7 @@ public class LinkParser {
             connection.connect();
         }
         catch (Exception e) {
+            //System.out.println(5);
             badUrls.put(url.toString(), GetResponseCode(url));
             return false;
         }
@@ -178,6 +187,7 @@ public class LinkParser {
         }
         catch (Exception e)
         {
+            //System.out.println(6);
             return 404;
         }
     }
