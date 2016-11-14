@@ -8,7 +8,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.*;
 
-public class LinkParser {
+class LinkParser {
 
     private final int TIMEOUT = 10000;
 
@@ -18,7 +18,7 @@ public class LinkParser {
     private Map<String, Integer> parsedUrls;
     private Map<String, Integer> badUrls;
 
-    public LinkParser(String link)
+    LinkParser(String link)
     {
         startLink = link;
         unparsedUrls = new Vector<>();
@@ -26,7 +26,7 @@ public class LinkParser {
         badUrls = new HashMap<>();
     }
 
-    public void Parse() throws Exception
+    void Parse() throws Exception
     {
         startLink = startLink.startsWith("http") ? startLink : "http://" + startLink;
 
@@ -74,7 +74,7 @@ public class LinkParser {
                 continue;
             }
 
-            System.out.println("Processing URL: " + currentUrl.toString());
+            //System.out.println("Processing URL: " + currentUrl.toString());
             parsedUrls.put(currentUrl.toString(), GetResponseCode(currentUrl));
             unparsedUrls.remove(unparsedUrls.get(0));
             //System.out.println(parsedUrls.size() + " " + unparsedUrls.size());
@@ -125,6 +125,10 @@ public class LinkParser {
         {
             return "http://" + domain + url;
         }
+        if (!url.startsWith("http") && !url.startsWith("www."))
+        {
+            url = domain + "/" + url;
+        }
         if (!url.startsWith("http"))
         {
             url = "http://" + url;
@@ -145,10 +149,6 @@ public class LinkParser {
             url = new URL(tempUrl);
             String urlDomain = url.getHost();
 
-            if (!urlDomain.contains("www."))
-            {
-                urlDomain = "www." + urlDomain;
-            }
             if (!urlDomain.equals(domain))
             {
                 return false;
