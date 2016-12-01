@@ -58,7 +58,5 @@ std::string CDetermineTriangle::GetResult()
 	case NOT_TRIANGLE:
 		return "Не треугольник";
 		break;
-	default:
-		break;
 	}
 }
