@@ -2,7 +2,6 @@
 #include <string>
 #include <iostream>
 #include "CDetermineTriangle.h"
-#include <boost\lexical_cast.hpp>
 
 CDetermineTriangle::CDetermineTriangle(const std::string& a, const std::string& b, const std::string& c)
 {
@@ -12,54 +11,52 @@ CDetermineTriangle::CDetermineTriangle(const std::string& a, const std::string& 
 		m_b = boost::lexical_cast<double>(b);
 		m_c = boost::lexical_cast<double>(c);
 	}
-	catch (const std::exception&)
+	catch (const boost::bad_lexical_cast&)
 	{
-		//throw std::exception("Invalid arguments. Parameters must have type <double>");
-		throw std::exception("Неверный аргумент.\n Аргументами должны быть числа.");
+		throw std::bad_cast();
 	}
 
 	if (m_a <= 0 || m_b <= 0 || m_c <= 0)
 	{
-		//throw std::exception("Invalid arguments. Side must be more than 0");
-		throw std::exception("Неверный аргумент.\nСтороны должны иметь длину больше 0");
+		throw std::invalid_argument("Неверный аргумент.\nСтороны должны иметь длину больше 0");
 	}
 }
 
-void CDetermineTriangle::DetermineTriangleType()
+TriangleType CDetermineTriangle::DetermineTriangleType()
 {
 	if ((m_a >= m_b + m_c) || (m_b >= m_a + m_c) || (m_c >= m_a + m_b))
 	{
-		m_type = NOT_TRIANGLE;
+		return NOT_TRIANGLE;
 	}
 	else if ((m_a == m_b) && (m_b == m_c) && (m_a == m_c))
 	{
-		m_type = EQUILATERAL;
+		return EQUILATERAL;
 	}
 	else if ((m_a == m_b) || (m_a == m_c) || (m_b == m_c))
 	{
-		m_type = ISOSCELES;
+		return ISOSCELES;
 	}
 	else
 	{
-		m_type = NORMAL;
+		return NORMAL;
 	}
 }
 
-void CDetermineTriangle::OutputResult()
+std::string CDetermineTriangle::GetResult()
 {
-	switch (m_type)
+	switch (DetermineTriangleType())
 	{
 	case NORMAL:
-		std::cout << "Обычный" << std::endl;
+		return "Обычный";
 		break;
 	case ISOSCELES:
-		std::cout << "Равнобедренный" << std::endl;
+		return "Равнобедренный";
 		break;
 	case EQUILATERAL:
-		std::cout << "Равносторонний" << std::endl;
+		return "Равносторонний";
 		break;
 	case NOT_TRIANGLE:
-		std::cout << "Не треугольник" << std::endl;
+		return "Не треугольник";
 		break;
 	default:
 		break;

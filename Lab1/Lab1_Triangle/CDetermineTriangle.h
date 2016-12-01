@@ -1,5 +1,7 @@
 #pragma once
 #include <string>
+#include <boost\lexical_cast.hpp>
+
 
 enum TriangleType
 {
@@ -13,8 +15,8 @@ class CDetermineTriangle
 {
 public:
 	CDetermineTriangle(const std::string& a, const std::string& b, const std::string& c);
-	void DetermineTriangleType();
-	void OutputResult();
+	TriangleType DetermineTriangleType();
+	std::string GetResult();
 
 private:
 	double m_a;
